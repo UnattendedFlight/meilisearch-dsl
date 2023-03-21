@@ -1,4 +1,4 @@
-# pylint: disable=W0719,C0103,R0904
+# pylint: disable=W0719,C0103,R0904, import-error
 """MeiliClient is a wrapper around the MeiliSearch client. It provides a
 simple interface to create indexes and add documents to them. It also
 provides a simple interface to delete indexes and documents from them.
@@ -6,7 +6,7 @@ provides a simple interface to delete indexes and documents from them.
 from typing import Dict, List
 
 from meilisearch import Client
-from meilisearch.index import Index
+from .index import Index
 
 from .index import MeiliIndex
 

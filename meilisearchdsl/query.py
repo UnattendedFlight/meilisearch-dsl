@@ -1,4 +1,4 @@
-# pylint: disable=W0719,E1101,C0103
+# pylint: disable=W0719,E1101,C0103,E1131
 """
 Query (Q) Module
 This module provides the Q class, which is designed to help you create 
