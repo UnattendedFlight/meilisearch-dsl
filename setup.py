@@ -1,10 +1,15 @@
+# pylint: disable=missing-docstring, invalid-name, line-too-long, R1732
 from setuptools import setup, find_packages
 
 setup(
     name="meilisearchdsl",
     version="0.1.1",
-    description="MeiliSearch DSL is a Python package providing a Django-like Q object syntax for querying MeiliSearch, an open-source search engine. It simplifies search query building and offers a convenient wrapper for MeiliSearch indexes and clients, streamlining search interactions and improving maintainability.",
-    long_description=open("README.md").read(),
+    description="MeiliSearch DSL is a Python package providing a Django-like Q object syntax for"
+    + " querying MeiliSearch, an open-source search engine."
+    + " It simplifies search query building and offers a convenient wrapper"
+    + " for MeiliSearch indexes and clients, streamlining search interactions"
+    + " and improving maintainability.",
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="Adrian Leo",
     url="https://github.com/UnattendedFlight/meilisearch-dsl",
