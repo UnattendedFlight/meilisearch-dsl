@@ -1,7 +1,10 @@
-from meilisearch import Client
-from index import MeiliIndex
-from meilisearch.errors import MeiliSearchApiError
 from time import sleep
+
+from meilisearch import Client
+from meilisearch.errors import MeiliSearchApiError
+
+from .index import MeiliIndex
+
 
 class MeiliClient:
     client: Client = None
@@ -22,7 +25,8 @@ class MeiliClient:
             assert 'host' in self.config, "MeiliClient config missing host"
             assert 'master_key' in self.config, "MeiliClient config missing master_key"
             try:
-                self.client = Client(self.config['host'], self.config['master_key'])
+                self.client = Client(
+                    self.config['host'], self.config['master_key'])
             except MeiliSearchApiError:
                 print("MeiliClient failed to connect to MeiliSearch")
                 return None
@@ -35,7 +39,7 @@ class MeiliClient:
         if index_name not in self.indexes:
             self.indexes[index_name] = MeiliIndex(index_name, self.client)
         return self.indexes[index_name]
-    
+
     def delete_index(self, index_name: str):
         self.client = self.get_client()
         assert self.client is not None, "No Meilisearch client"
@@ -47,26 +51,27 @@ class MeiliClient:
             else:
                 self.client.delete_index(index_name)
         except MeiliSearchApiError as e:
-            raise Exception("Failed to delete index '%s': %s" % (index_name, e))
+            raise Exception(
+                "Failed to delete index '%s': %s" % (index_name, e))
 
     def get_indexes(self) -> list:
         self.client = self.get_client()
         assert self.client is not None, "No Meilisearch client"
 
         return self.client.get_indexes()
-    
+
     def get_health(self) -> dict:
         self.client = self.get_client()
         assert self.client is not None, "No Meilisearch client"
 
         return self.client.health()
-    
+
     def get_stats(self) -> dict:
         self.client = self.get_client()
         assert self.client is not None, "No Meilisearch client"
 
         return self.client.get_all_stats()
-    
+
     def get_version(self) -> dict:
         self.client = self.get_client()
         assert self.client is not None, "No Meilisearch client"

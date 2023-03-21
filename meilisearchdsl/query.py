@@ -37,6 +37,7 @@ class Q:
         op_map[OPERATIONS.EXISTS]: op_map[OPERATIONS.NOT_EXISTS],
         op_map[OPERATIONS.NOT_EXISTS]: op_map[OPERATIONS.EXISTS]
     }
+
     def __init__(self, **kwargs):
         self.conditions = kwargs
         self.operator = None
@@ -63,7 +64,6 @@ class Q:
         new_q.children = self.children
         return new_q
 
-
     def _clean_value(self, val):
         retval = val
         if isinstance(val, str):
@@ -75,7 +75,8 @@ class Q:
             retval = str(val).lower()
         else:
             retval = str(val)
-        expression_ops = list(self.OPERATIONS._member_map_.values()) + list(self.negate_map.values())
+        expression_ops = list(
+            self.OPERATIONS._member_map_.values()) + list(self.negate_map.values())
         if retval in expression_ops:
             retval = f'\"{retval}\"'
         return retval
@@ -84,18 +85,22 @@ class Q:
         if self.operator:
             left = self.children[0].to_query_string()
             right = self.children[1].to_query_string()
-            return f"({left} {self.operator} {right})"
+            return f"({left}) {self.operator} ({right})"
         else:
             conditions = []
             for k, v in self.conditions.items():
-                field, op = k.split('__') if '__' in k else (k, self.OPERATIONS.EQUALS)
-                assert op in self.OPERATIONS._member_map_.values(), f"Invalid operation {op}"
+                field, op = k.split('__') if '__' in k else (
+                    k, self.OPERATIONS.EQUALS)
+                assert op in self.OPERATIONS._member_map_.values(
+                ), f"Invalid operation {op}"
                 if op == self.OPERATIONS.IN:
-                    assert isinstance(v, list), f"Value for IN operation must be a list. Got {v}"
+                    assert isinstance(
+                        v, list), f"Value for IN operation must be a list. Got {v}"
                     escaped_values = [self._clean_value(i) for i in v]
                     v = f"[{','.join(escaped_values)}]"
                 elif op == self.OPERATIONS.NOT_IN:
-                    assert isinstance(v, list), f"Value for NOT_IN operation must be a list. Got {v}"
+                    assert isinstance(
+                        v, list), f"Value for NOT_IN operation must be a list. Got {v}"
                     escaped_values = [self._clean_value(i) for i in v]
                     v = f"[{','.join(escaped_values)}]"
                 else:
@@ -112,9 +117,10 @@ class Q:
                 conditions.append(condition)
             return " AND ".join(conditions)
 
-    def to_query_list(self, lvl: int=0) -> list:
+    def to_query_list(self, lvl: int = 0) -> list:
         if lvl > 2:
-            raise Exception("Query nesting too deep, meilisearch only supports 2 levels of nesting")
+            raise Exception(
+                "Query nesting too deep, meilisearch only supports 2 levels of nesting")
         if self.operator:
             left = self.children[0].to_query_list(lvl+1)
             right = self.children[1].to_query_list(lvl+1)

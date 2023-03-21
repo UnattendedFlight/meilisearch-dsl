@@ -1,10 +1,13 @@
-import meilisearch
-from meilisearch.index import Index
-from typing import List, Dict, Any, Optional
-from query import Q
-from meilisearch.errors import MeiliSearchApiError
-from meilisearch.models.task import TaskInfo
 from time import sleep
+from typing import Any, Dict, List, Optional
+
+import meilisearch
+from meilisearch.errors import MeiliSearchApiError
+from meilisearch.index import Index
+from meilisearch.models.task import TaskInfo
+
+from .query import Q
+
 
 class MeiliIndex:
     def __init__(self, index_name: str, client: meilisearch.Client):
@@ -20,17 +23,19 @@ class MeiliIndex:
         except MeiliSearchApiError as e:
             index_options = {}
             if options is not None:
-                assert isinstance(options, dict), "Options must be a dictionary"
+                assert isinstance(
+                    options, dict), "Options must be a dictionary"
             if primary_key is not None:
                 index_options["primaryKey"] = primary_key
             if options is not None:
                 index_options.update(options)
-            
-            self._call_long_index_method(self._index.create_index, index_name, index_options)
+
+            self._call_long_index_method(
+                self._index.create_index, index_name, index_options)
 
             self._index = self.client.get_index(index_name)
         return self._index
-    
+
     def update_filterable_attributes(self, attributes: List[str]) -> TaskInfo:
         """Update filterable attributes of the index.
 
@@ -52,7 +57,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._call_long_index_method(self._index.update_filterable_attributes, attributes)
-    
+
     def aupdate_filterable_attributes(self, attributes: List[str]) -> TaskInfo:
         """Update filterable attributes of the index.
 
@@ -74,7 +79,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_filterable_attributes(attributes)
-    
+
     def update_searchable_attributes(self, attributes: List[str]) -> TaskInfo:
         """Update searchable attributes of the index.
 
@@ -96,7 +101,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._call_long_index_method(self._index.update_searchable_attributes, attributes)
-    
+
     def aupdate_searchable_attributes(self, attributes: List[str]) -> TaskInfo:
         """Update searchable attributes of the index.
 
@@ -118,7 +123,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_searchable_attributes(attributes)
-    
+
     def update_displayed_attributes(self, attributes: List[str]) -> TaskInfo:
         """Update displayed attributes of the index.
 
@@ -140,7 +145,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._call_long_index_method(self._index.update_displayed_attributes, attributes)
-    
+
     def aupdate_displayed_attributes(self, attributes: List[str]) -> TaskInfo:
         """Update displayed attributes of the index.
 
@@ -162,7 +167,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_displayed_attributes(attributes)
-    
+
     def update_ranking_rules(self, rules: List[str]) -> TaskInfo:
         """Update ranking rules of the index.
 
@@ -184,7 +189,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._call_long_index_method(self._index.update_ranking_rules, rules)
-    
+
     def aupdate_ranking_rules(self, rules: List[str]) -> TaskInfo:
         """Update ranking rules of the index.
 
@@ -206,7 +211,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_ranking_rules(rules)
-    
+
     def get_settings(self) -> Dict[str, Any]:
         """Get settings of the index.
 
@@ -225,7 +230,7 @@ class MeiliIndex:
         assert self._index is not None, "No Meilisearch index"
         return self._call_long_index_method(self._index.get_settings)
         return self._index.get_settings()
-    
+
     def aget_settings(self) -> Dict[str, Any]:
         """Get settings of the index.
 
@@ -323,7 +328,7 @@ class MeiliIndex:
         """
         assert self._index is not None, "No Meilisearch index"
         return self._call_long_index_method(self._index.add_documents, documents, primary_key)
-    
+
     def aadd_documents(
         self,
         documents: List[Dict[str, Any]],
@@ -373,7 +378,7 @@ class MeiliIndex:
             An error containing details about why Meilisearch can't process your request. Meilisearch error codes are described here: https://docs.meilisearch.com/errors/#meilisearch-errors
         """
         return self._call_long_index_method(self._index.update_documents, [document], primary_key)
-    
+
     def aupdate_documents(self, documents: List[Dict], primary_key: str | None = None) -> TaskInfo:
         """Update documents in the index.
 
@@ -396,7 +401,7 @@ class MeiliIndex:
         """
         return self._index.update_documents(documents, primary_key)
 
-    def delete_document(self, document_id: str) -> TaskInfo:
+    def delete_document(self, document_id: str | int) -> TaskInfo:
         """Delete one document from the index.
 
         Parameters
@@ -417,7 +422,7 @@ class MeiliIndex:
         """
         return self._call_long_index_method(self._index.delete_document, document_id)
 
-    def adelete_document(self, document_id: str) -> TaskInfo:
+    def adelete_document(self, document_id: str | int) -> TaskInfo:
         """Delete one document from the index.
 
         Parameters
@@ -437,7 +442,7 @@ class MeiliIndex:
             An error containing details about why Meilisearch can't process your request. Meilisearch error codes are described here: https://docs.meilisearch.com/errors/#meilisearch-errors
         """
         return self._index.delete_document(document_id)
-    
+
     def delete_all_documents(self) -> TaskInfo:
         """Delete all documents from the index.
 
@@ -453,7 +458,7 @@ class MeiliIndex:
             An error containing details about why Meilisearch can't process your request. Meilisearch error codes are described here: https://docs.meilisearch.com/errors/#meilisearch-errors
         """
         return self._call_long_index_method(self._index.delete_all_documents)
-    
+
     def adelete_all_documents(self) -> TaskInfo:
         """Delete all documents from the index.
 
@@ -476,7 +481,8 @@ class MeiliIndex:
             assert isinstance(q, Q), "q must be a Q object"
             search_params["filter"] = q.to_query_string()
         if opt_params is not None:
-            assert isinstance(opt_params, dict), "opt_params must be a dictionary"
+            assert isinstance(
+                opt_params, dict), "opt_params must be a dictionary"
             search_params.update(opt_params)
 
         return self._index.search(search_string, search_params)

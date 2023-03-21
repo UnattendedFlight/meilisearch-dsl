@@ -24,6 +24,8 @@ from meilisearch_dsl import Q, MeiliClient, MeiliIndex
 
 # Then, create a MeiliSearch client and index:
 client = MeiliClient(host="http://127.0.0.1:7700", master_key="your_master_key")
+index = client.get_index("your_index_name")
+# or
 index = MeiliIndex("your_index_name", client)
 
 # Build a search filter using the Q object syntax:
@@ -36,10 +38,10 @@ print(results)
 ```
 
 ## Documentation
-For more detailed information and examples, please refer to the [official documentation](https://github.com/yourusername/meilisearch-dsl/wiki).
+For more detailed information and examples, please refer to the [official documentation](https://github.com/unattendedflight/meilisearch-dsl/wiki).
 
 ## Contributing
-We welcome contributions from the community! Please read our [contribution guidelines](https://github.com/yourusername/meilisearch-dsl/blob/master/CONTRIBUTING.md) before submitting a pull request.
+We welcome contributions from the community! Please read our [contribution guidelines](https://github.com/unattendedflight/meilisearch-dsl/blob/master/CONTRIBUTING.md) before submitting a pull request.
 
 ## License
-MeiliSearch DSL is licensed under the [MIT License](https://github.com/yourusername/meilisearch-dsl/blob/master/LICENSE).
+MeiliSearch DSL is licensed under the [MIT License](https://github.com/unattendedflight/meilisearch-dsl/blob/master/LICENSE).
