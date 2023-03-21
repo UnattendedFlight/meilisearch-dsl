@@ -29,7 +29,7 @@ query_string = q.to_query_string()
 ```
 """
 from enum import Enum
-from typing import Any, List
+from typing import Any, List, Union
 
 
 class Q:
@@ -109,7 +109,7 @@ class Q:
         new_q.children = self.children
         return new_q
 
-    def _clean_value(self, val) -> str | int | dict | List[Any]:
+    def _clean_value(self, val) -> Union[str, int, dict, List[Any]]:
         """Returns a proper (cleaned) representation of the given value."""
         retval = val
         if isinstance(val, str):

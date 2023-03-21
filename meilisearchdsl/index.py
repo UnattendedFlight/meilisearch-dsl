@@ -1,7 +1,7 @@
 # pylint: disable=W0719,C0103,R0904,E1131,import-error
 """Index Module"""
 from time import sleep
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import meilisearch
 from meilisearch.errors import MeiliSearchApiError
@@ -23,7 +23,7 @@ class MeiliIndex:
         self,
         index_name: str,
         primary_key: Optional[str] = None,
-        options: Dict[str, Any] | None = None,
+        options: Union[Dict[str, Any], None] = None,
     ) -> Index:
         """Get an index from Meilisearch."""
         assert self.client is not None, "No Meilisearch client"
@@ -46,7 +46,7 @@ class MeiliIndex:
             self._index = self.client.get_index(index_name)
         return self._index
 
-    def update_filterable_attributes(self, attributes: List[str]) -> TaskInfo | Task:
+    def update_filterable_attributes(self, attributes: List[str]) -> Union[TaskInfo, Task]:
         """Update filterable attributes of the index.
 
         Parameters
@@ -98,7 +98,7 @@ class MeiliIndex:
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_filterable_attributes(attributes)
 
-    def update_searchable_attributes(self, attributes: List[str]) -> TaskInfo | Task:
+    def update_searchable_attributes(self, attributes: List[str]) -> Union[TaskInfo, Task]:
         """Update searchable attributes of the index.
 
         Parameters
@@ -150,7 +150,7 @@ class MeiliIndex:
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_searchable_attributes(attributes)
 
-    def update_displayed_attributes(self, attributes: List[str]) -> TaskInfo | Task:
+    def update_displayed_attributes(self, attributes: List[str]) -> Union[TaskInfo, Task]:
         """Update displayed attributes of the index.
 
         Parameters
@@ -202,7 +202,7 @@ class MeiliIndex:
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_displayed_attributes(attributes)
 
-    def update_ranking_rules(self, rules: List[str]) -> TaskInfo | Task:
+    def update_ranking_rules(self, rules: List[str]) -> Union[TaskInfo, Task]:
         """Update ranking rules of the index.
 
         Parameters
@@ -415,7 +415,7 @@ class MeiliIndex:
         return self._index.add_documents(documents, primary_key)
 
     def update_document(
-        self, document: Dict, primary_key: str | None = None
+        self, document: Dict, primary_key: Optional[str] = None
     ) -> TaskInfo:
         """Update documents in the index.
 
@@ -443,7 +443,7 @@ class MeiliIndex:
         )
 
     def aupdate_documents(
-        self, documents: List[Dict], primary_key: str | None = None
+        self, documents: List[Dict], primary_key: Optional[str] = None
     ) -> TaskInfo:
         """Update documents in the index.
 
@@ -468,7 +468,7 @@ class MeiliIndex:
         """
         return self._index.update_documents(documents, primary_key)
 
-    def delete_document(self, document_id: str | int) -> TaskInfo:
+    def delete_document(self, document_id: Union[str, int]) -> TaskInfo:
         """Delete one document from the index.
 
         Parameters
@@ -492,7 +492,7 @@ class MeiliIndex:
         """
         return self._call_long_index_method(self._index.delete_document, document_id)
 
-    def adelete_document(self, document_id: str | int) -> TaskInfo:
+    def adelete_document(self, document_id: Union[str, int]) -> TaskInfo:
         """Delete one document from the index.
 
         Parameters
@@ -557,8 +557,8 @@ class MeiliIndex:
     def search(
         self,
         search_string,
-        q: Q | None = None,
-        opt_params: Dict[str, Any] | None = None,
+        q: Optional[Q] = None,
+        opt_params: Union[Dict[str, Any], None] = None,
     ) -> Dict[str, Any]:
         """Search for documents in the index."""
         search_params = {}
