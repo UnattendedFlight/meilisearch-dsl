@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="meilisearchdsl",
-    version="0.1.1",
+    version="{{VERSION_PLACEHOLDER}}",
     description="MeiliSearch DSL is a Python package providing a Django-like Q object syntax for"
     + " querying MeiliSearch, an open-source search engine."
     + " It simplifies search query building and offers a convenient wrapper"
