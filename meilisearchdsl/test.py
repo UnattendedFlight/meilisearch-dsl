@@ -10,7 +10,9 @@ class TestQAndMeiliIndex(unittest.TestCase):
 
     def setUp(self):
         # print("Running test:", self._testMethodName)
-        self.client = MeiliClient("url", "api_key")
+        self.client = MeiliClient(
+            "http://172.25.0.4:7700", "MJPZij#@4o$NgYIRwxoU2aa^CUq9%5Lq"
+        )
         self.index = self.client.get_index("test_index")
         self.index.delete_all_documents()
         self.index.add_documents(
@@ -22,17 +24,13 @@ class TestQAndMeiliIndex(unittest.TestCase):
                     "number": 12,
                     "category": "a",
                 },
-                {"id": 2, "name": "Alice", "age": 21,
-                    "number": 15, "category": "b"},
+                {"id": 2, "name": "Alice", "age": 21, "number": 15, "category": "b"},
                 {"id": 3, "name": "Bob", "age": 35, "number": 22, "category": "c"},
-                {"id": 4, "name": "Alice", "age": 35,
-                    "number": 15, "category": "b"},
-                {"id": 5, "name": "Alice", "age": 19,
-                    "number": 25, "category": "a"},
+                {"id": 4, "name": "Alice", "age": 35, "number": 15, "category": "b"},
+                {"id": 5, "name": "Alice", "age": 19, "number": 25, "category": "a"},
             ]
         )
-        self.index.update_filterable_attributes(
-            ["name", "age", "number", "category"])
+        self.index.update_filterable_attributes(["name", "age", "number", "category"])
 
     def test_q_negation(self):
         """Test the negation of Q objects"""
@@ -48,8 +46,8 @@ class TestQAndMeiliIndex(unittest.TestCase):
         query_string = query.to_query_string()
         self.assertEqual(
             query_string,
-            '((((name = John OR name = "John Simmons")'
-            + 'OR age <= 30) AND (number >= 10 AND number <= 20)) OR category IN [a,"b c",1])',
+            '((((name = John) OR (name = "John Simmons")) OR (age <= 30)) AND '
+            + '((number >= 10) AND (number <= 20))) OR (category IN [a,"b c",1])',
         )
 
     def test_q_operations(self):
