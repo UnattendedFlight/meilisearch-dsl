@@ -128,6 +128,10 @@ class Q:
             retval = f'"{retval}"'
         return retval
 
+    def __repr__(self) -> str:
+        """Returns a string representation of the Q object."""
+        return f"Q({self.to_query_string()})"
+
     def to_query_string(self) -> str:
         """Returns a MeiliSearch query string representation of the Q object."""
         if self.operator:
@@ -136,10 +140,10 @@ class Q:
             return f"({left}) {self.operator} ({right})"
         conditions = []
         for key, value in self.conditions.items():
-            field, operation = (
-                key.split("__") if "__" in key else (
-                    key, self.OPERATIONS.EQUALS)
+            *fields, operation = (
+                key.split("__") if "__" in key else (key, self.OPERATIONS.EQUALS)
             )
+            field = ".".join(fields)
             assert operation in self.OPERATIONS.get_values(), ValueError(
                 f"Invalid operation {operation}"
             )
@@ -182,10 +186,10 @@ class Q:
             return [left, right]
         conditions = []
         for key, value in self.conditions.items():
-            field, operation = (
-                key.split("__") if "__" in key else (
-                    key, self.OPERATIONS.EQUALS)
+            *fields, operation = (
+                key.split("__") if "__" in key else (key, self.OPERATIONS.EQUALS)
             )
+            field = ".".join(fields)
             assert (
                 operation in self.OPERATIONS.get_values()
             ), f"Invalid operation {operation}"
@@ -214,3 +218,75 @@ class Q:
                 condition = f"{field} {operation} {value}"
             conditions.append(condition)
         return " AND ".join(conditions)  # type: ignore
+
+    def prettify_query_string(self) -> str:
+        """Returns a prettified MeiliSearch query string representation of the Q object."""
+        query_string = self.to_query_string()
+        stack = []
+        result = []
+        indent = 0
+        space = "    "
+
+        for char in query_string:
+            if char == "(":
+                stack.append(char)
+                indent += 1
+                result.append(char)
+            elif char == ")":
+                stack.pop()
+                indent -= 1
+                result.append(char)
+            elif char in ["A", "O"] and "".join(stack[-3:]) in ["AND", "OR "]:
+                result.append("\n" + indent * space + char)
+                stack.pop()
+            else:
+                stack.append(char)
+                result.append(char)
+
+            if len(stack) >= 3 and "".join(stack[-3:]) in ["AND", "OR "]:
+                result.append("\n" + indent * space)
+
+        return "".join(result)
+
+    def explain(self, indent_level: int = 0) -> str:
+        """Returns a string representation of the Q object with
+        indentation to show the nesting of the query."""
+
+        def indent(text: str, level: int) -> str:
+            return "    " * level + text
+
+        if self.operator:
+            left = self.children[0].explain(indent_level + 1)
+            right = self.children[1].explain(indent_level + 1)
+            return (
+                f"{indent('BEGIN', indent_level)}\n{left}"
+                + f"\n{indent(self.operator, indent_level)}\n{right}"
+            )
+        conditions = []
+        for key, value in self.conditions.items():
+            *fields, operation = (
+                key.split("__") if "__" in key else (key, Q.OPERATIONS.EQUALS)
+            )
+            field = ".".join(fields)
+            if self.negate:
+                operation = self.negate_map[self.op_map[operation]]
+            else:
+                operation = self.op_map[operation]
+            explanation = ""
+            if operation == "EXISTS":
+                explanation = "exists"
+            elif operation == "NOT EXISTS":
+                explanation = "does not exist"
+            elif operation == "IN":
+                explanation = f"is in {value}"
+            elif operation == "NOT IN":
+                explanation = f"is not in {value}"
+            else:
+                explanation = f"is {operation.lower()} {value}"
+            conditions.append(
+                indent(
+                    f'field "{field}":\n{indent(f"* {explanation}", indent_level + 1)}',
+                    indent_level,
+                )
+            )
+        return "\n".join(conditions)
