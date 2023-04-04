@@ -14,10 +14,13 @@ from .query import Q
 class MeiliIndex:
     """MeiliIndex class."""
 
-    def __init__(self, index_name: str, client: meilisearch.Client):
+    def __init__(self, index_name: str, client: meilisearch.Client, primary_key: str):
         self.index_name = index_name
         self.client: meilisearch.Client = client
-        self._index: Index = self.get_index(index_name)
+        try:
+            self._index: Index = self.get_index(index_name, primary_key)
+        except Exception:
+            self._index: Index = self.create_index(index_name, primary_key)
 
     def get_index(
         self,
@@ -29,7 +32,7 @@ class MeiliIndex:
         assert self.client is not None, "No Meilisearch client"
         try:
             self._index = self.client.get_index(index_name)
-        except MeiliSearchApiError:
+        except Exception:
             index_options = {}
             if options is not None:
                 assert isinstance(
@@ -44,6 +47,29 @@ class MeiliIndex:
             )
 
             self._index = self.client.get_index(index_name)
+        return self._index
+    
+    def create_index(
+        self,
+        index_name: str,
+        primary_key: Optional[str] = None,
+        options: Union[Dict[str, Any], None] = None,
+    ) -> Index:
+        """Create an index in Meilisearch."""
+        assert self.client is not None, "No Meilisearch client"
+        index_options = {}
+        if options is not None:
+            assert isinstance(options, dict), "Options must be a dictionary"
+        if primary_key is not None:
+            index_options["primaryKey"] = primary_key
+        if options is not None:
+            index_options.update(options)
+
+        self._call_long_index_method(
+            self.client.create_index, index_name, index_options
+        )
+
+        self._index = self.client.get_index(index_name)
         return self._index
 
     def update_filterable_attributes(self, attributes: List[str]) -> Union[TaskInfo, Task]:
@@ -600,6 +626,5 @@ class MeiliIndex:
 
     def _call_long_index_method(self, function, *args, **kwargs) -> Any:
         """Call a method that returns a taskInfo object and wait for the task to complete."""
-        assert self._index is not None, "No Meilisearch index"
         task_info: TaskInfo = function(*args, **kwargs)
         return self._await_running_task(task_info)

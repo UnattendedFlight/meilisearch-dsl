@@ -36,14 +36,14 @@ class MeiliClient:
                 self.config["host"], self.config["master_key"])
         return self.client
 
-    def get_index(self, index_name: str) -> MeiliIndex:
+    def get_index(self, index_name: str, primary_key: str) -> MeiliIndex:
         """Get an index by name. If it doesn't exist, create it."""
         self.client = self.get_client()
         assert self.client is not None, ModuleNotFoundError(
             "No Meilisearch client")
 
         if index_name not in self.indexes:
-            self.indexes[index_name] = MeiliIndex(index_name, self.client)
+            self.indexes[index_name] = MeiliIndex(index_name, self.client, primary_key)
         return self.indexes[index_name]
 
     def delete_index(self, index_name: str):
