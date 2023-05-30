@@ -1,8 +1,12 @@
 """ Basic tests for the MeiliSearch DSL """
 import unittest
 
-from meilisearchdsl.client import MeiliClient
-from meilisearchdsl.query import Q
+# from meilisearchdsl.client import MeiliClient
+from .client import MeiliClient
+
+# from meilisearchdsl.query import Q
+from .query import Q
+from .index_query import IndexSearch
 
 
 class TestQAndMeiliIndex(unittest.TestCase):
@@ -11,26 +15,27 @@ class TestQAndMeiliIndex(unittest.TestCase):
     def setUp(self):
         # print("Running test:", self._testMethodName)
         self.client = MeiliClient(
-            "http://172.25.0.4:7700", "MJPZij#@4o$NgYIRwxoU2aa^CUq9%5Lq"
+            "ip", "master-key"
         )
-        self.index = self.client.get_index("test_index")
+        self.index = self.client.get_index("test_index", "pk")
         self.index.delete_all_documents()
         self.index.add_documents(
             [
                 {
-                    "id": 1,
+                    "pk": 1,
                     "name": "John Simmons",
                     "age": 28,
                     "number": 12,
                     "category": "a",
                 },
-                {"id": 2, "name": "Alice", "age": 21, "number": 15, "category": "b"},
-                {"id": 3, "name": "Bob", "age": 35, "number": 22, "category": "c"},
-                {"id": 4, "name": "Alice", "age": 35, "number": 15, "category": "b"},
-                {"id": 5, "name": "Alice", "age": 19, "number": 25, "category": "a"},
+                {"pk": 2, "name": "Alice", "age": 21, "number": 15, "category": "b"},
+                {"pk": 3, "name": "Bob", "age": 35, "number": 22, "category": "c"},
+                {"pk": 4, "name": "Alice", "age": 35, "number": 15, "category": "b"},
+                {"pk": 5, "name": "Alice", "age": 19, "number": 25, "category": "a"},
             ]
         )
         self.index.update_filterable_attributes(["name", "age", "number", "category"])
+        self.index.update_sortable_attributes(["age"])
 
     def test_q_negation(self):
         """Test the negation of Q objects"""
@@ -83,10 +88,10 @@ class TestQAndMeiliIndex(unittest.TestCase):
         """Test the update_document method of MeiliIndex"""
         self.index.update_document(
             {
-                "id": 1,
+                "pk": 1,
                 "name": "Johnathan",
             },
-            "id",
+            "pk",
         )
         query = Q(name="John")
         results = self.index.search("", query)
@@ -112,6 +117,44 @@ class TestQAndMeiliIndex(unittest.TestCase):
         query = Q(name="John")
         results = self.index.search("", query)
         self.assertEqual(len(results["hits"]), 0)
+
+    def test_multi_search(self):
+        """Test the multisearch method of MeiliIndex"""
+        index_search = IndexSearch(self.index.index_name, "John")
+        index_search.filter(Q(age__gt=19)).retrieve_attributes(
+            ["name", "age"]
+        ).highlight_attributes(["name"]).facets(["category"]).limit(
+            2
+        ).show_matches_position(
+            True
+        ).sort(
+            ["age:asc"]
+        )
+        self.assertEqual(
+            index_search.query(),
+            {
+                "indexUid": "test_index",
+                "q": "John",
+                "filter": "age > 19",
+                "limit": 2,
+                "facets": ["category"],
+                "attributesToRetrieve": ["name", "age"],
+                "attributesToHighlight": ["name"],
+                "showMatchesPosition": True,
+                "sort": ["age:asc"],
+            },
+        )
+        response = self.index.multisearch([index_search])
+        self.assertEqual(
+            response["results"][0]["hits"][0]["_formatted"]["name"],
+            "<em>John</em> Simmons",
+        )
+        self.assertEqual(
+            response["results"][0]["hits"][0]["_matchesPosition"]["name"],
+            [{"start": 0, "length": 4}],
+        )
+        self.assertEqual(response["results"][0]["hits"][0]["age"], 28)
+        self.assertEqual(response["results"][0]["hits"][0]["_formatted"]["age"], "28")
 
 
 if __name__ == "__main__":

@@ -26,6 +26,6 @@ setup(
     ],
     install_requires=[
         # List your package's dependencies here
-        "meilisearch>=0.25.0",
+        "meilisearch==0.26.0",
     ],
 )

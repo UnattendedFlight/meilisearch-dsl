@@ -4,7 +4,7 @@ from time import sleep
 from typing import Any, Dict, List, Optional, Union
 
 import meilisearch
-from meilisearch.errors import MeiliSearchApiError
+from meilisearch.errors import MeilisearchApiError
 from meilisearch.index import Index
 from meilisearch.models.task import TaskInfo, Task
 
@@ -19,7 +19,7 @@ class MeiliIndex:
         self.client: meilisearch.Client = client
         try:
             self._index: Index = self.get_index(index_name, primary_key)
-        except Exception:
+        except MeilisearchApiError:
             self._index: Index = self.create_index(index_name, primary_key)
 
     def get_index(
@@ -32,11 +32,10 @@ class MeiliIndex:
         assert self.client is not None, "No Meilisearch client"
         try:
             self._index = self.client.get_index(index_name)
-        except Exception:
+        except MeilisearchApiError:
             index_options = {}
             if options is not None:
-                assert isinstance(
-                    options, dict), "Options must be a dictionary"
+                assert isinstance(options, dict), "Options must be a dictionary"
             if primary_key is not None:
                 index_options["primaryKey"] = primary_key
             if options is not None:
@@ -48,7 +47,7 @@ class MeiliIndex:
 
             self._index = self.client.get_index(index_name)
         return self._index
-    
+
     def create_index(
         self,
         index_name: str,
@@ -72,7 +71,9 @@ class MeiliIndex:
         self._index = self.client.get_index(index_name)
         return self._index
 
-    def update_filterable_attributes(self, attributes: List[str]) -> Union[TaskInfo, Task]:
+    def update_filterable_attributes(
+        self, attributes: List[str]
+    ) -> Union[TaskInfo, Task]:
         """Update filterable attributes of the index.
 
         Parameters
@@ -124,7 +125,9 @@ class MeiliIndex:
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_filterable_attributes(attributes)
 
-    def update_searchable_attributes(self, attributes: List[str]) -> Union[TaskInfo, Task]:
+    def update_searchable_attributes(
+        self, attributes: List[str]
+    ) -> Union[TaskInfo, Task]:
         """Update searchable attributes of the index.
 
         Parameters
@@ -176,7 +179,9 @@ class MeiliIndex:
         assert self._index is not None, "No Meilisearch index"
         return self._index.update_searchable_attributes(attributes)
 
-    def update_displayed_attributes(self, attributes: List[str]) -> Union[TaskInfo, Task]:
+    def update_displayed_attributes(
+        self, attributes: List[str]
+    ) -> Union[TaskInfo, Task]:
         """Update displayed attributes of the index.
 
         Parameters
@@ -202,6 +207,46 @@ class MeiliIndex:
         return self._call_long_index_method(
             self._index.update_displayed_attributes, attributes
         )
+
+    def update_sortable_attributes(
+        self, attributes: List[str]
+    ) -> Union[TaskInfo, Task]:
+        """Update sortable attributes of the index.
+
+        Parameters
+        ----------
+        body:
+            List containing the sortable attributes.
+
+        Returns
+        -------
+        task_info:
+            TaskInfo instance containing information about a task to track
+            the progress of an asynchronous process.
+            https://docs.meilisearch.com/reference/api/tasks.html
+        """
+        assert self._index is not None, "No Meilisearch index"
+        return self._call_long_index_method(
+            self._index.update_sortable_attributes, attributes
+        )
+
+    def aupdate_sortable_attributes(self, attributes: List[str]) -> TaskInfo:
+        """Update sortable attributes of the index.
+
+        Parameters
+        ----------
+        body:
+            List containing the sortable attributes.
+
+        Returns
+        -------
+        task_info:
+            TaskInfo instance containing information about a task to track
+            the progress of an asynchronous process.
+            https://docs.meilisearch.com/reference/api/tasks.html
+        """
+        assert self._index is not None, "No Meilisearch index"
+        return self._index.update_sortable_attributes(attributes)
 
     def aupdate_displayed_attributes(self, attributes: List[str]) -> TaskInfo:
         """Update displayed attributes of the index.
@@ -592,11 +637,20 @@ class MeiliIndex:
             assert isinstance(q, Q), "q must be a Q object"
             search_params["filter"] = q.to_query_string()
         if opt_params is not None:
-            assert isinstance(
-                opt_params, dict), "opt_params must be a dictionary"
+            assert isinstance(opt_params, dict), "opt_params must be a dictionary"
             search_params.update(opt_params)
 
         return self._index.search(search_string, search_params)
+
+    def multisearch(
+        self,
+        index_queries: List[IndexSearch],
+    ):
+        """Search for documents in multiple indexes."""
+        return self.client.http.post(
+            f"{self.client.config.paths.multi_search}",
+            body={"queries": [q.query() for q in index_queries]},
+        )
 
     def _await_running_task(self, task_info: TaskInfo) -> Any:
         """Wait for a task to complete and return the task info object."""
@@ -606,7 +660,8 @@ class MeiliIndex:
         while not complete:
             if count > timeout_seconds:
                 print(
-                    f"Task '{task_info['type']}:{task_info['taskUid']}'", # type: ignore
+                    # type: ignore
+                    f"Task '{task_info.type}:{task_info.task_uid}'",
                     f"timed out after {timeout_seconds} seconds",
                 )
                 break

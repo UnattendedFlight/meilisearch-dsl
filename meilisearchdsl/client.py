@@ -6,7 +6,7 @@ provides a simple interface to delete indexes and documents from them.
 from typing import Dict, List
 
 from meilisearch import Client
-from .index import Index
+from meilisearch.index import Index
 
 from .index import MeiliIndex
 
