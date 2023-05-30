@@ -8,6 +8,8 @@ from meilisearch.errors import MeilisearchApiError
 from meilisearch.index import Index
 from meilisearch.models.task import TaskInfo, Task
 
+from .index_query import IndexSearch
+
 from .query import Q
 
 
