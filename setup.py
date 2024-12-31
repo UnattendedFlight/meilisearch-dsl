@@ -3,7 +3,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="meilisearchdsl",
-    version="{{VERSION_PLACEHOLDER}}",
+    # version="{{VERSION_PLACEHOLDER}}",
+    version="0.1.8",
     description="MeiliSearch DSL is a Python package providing a Django-like Q object syntax for"
     + " querying MeiliSearch, an open-source search engine."
     + " It simplifies search query building and offers a convenient wrapper"
@@ -20,12 +21,14 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
     install_requires=[
         # List your package's dependencies here
-        "meilisearch==0.26.0",
+        "meilisearch==0.33.0",
     ],
 )
